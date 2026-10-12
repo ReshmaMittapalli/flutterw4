@@ -1,0 +1,317 @@
+
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const ResponsiveApp());
+}
+
+class ResponsiveApp extends StatelessWidget {
+  const ResponsiveApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Responsive Orientation Demo',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+        ),
+      ),
+      home: const ResponsiveHomePage(),
+    );
+  }
+}
+
+class GalleryItem {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+
+  const GalleryItem({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.color,
+  });
+}
+
+const List<GalleryItem> items = [
+  GalleryItem(
+    title: 'Technology',
+    description: 'Explore modern technology and innovation.',
+    icon: Icons.devices,
+    color: Colors.deepPurple,
+  ),
+  GalleryItem(
+    title: 'Nature',
+    description: 'Discover beautiful places and landscapes.',
+    icon: Icons.landscape,
+    color: Colors.teal,
+  ),
+  GalleryItem(
+    title: 'Education',
+    description: 'Learn new skills and expand your knowledge.',
+    icon: Icons.school,
+    color: Colors.orange,
+  ),
+  GalleryItem(
+    title: 'Photography',
+    description: 'Capture memorable moments and experiences.',
+    icon: Icons.photo_camera,
+    color: Colors.pink,
+  ),
+  GalleryItem(
+    title: 'Travel',
+    description: 'Explore destinations around the world.',
+    icon: Icons.flight,
+    color: Colors.blue,
+  ),
+  GalleryItem(
+    title: 'Creativity',
+    description: 'Turn new ideas into something amazing.',
+    icon: Icons.palette,
+    color: Colors.green,
+  ),
+];
+
+class ResponsiveHomePage extends StatelessWidget {
+  const ResponsiveHomePage({super.key});
+
+  String getCategory(double width) {
+    if (width < 600) return 'Mobile';
+    if (width < 1024) return 'Tablet';
+    return 'Desktop';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final orientation = MediaQuery.of(context).orientation;
+    final category = getCategory(screenWidth);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F3FA),
+      appBar: AppBar(
+        title: const Text(
+          'Responsive Gallery',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final deviceCategory = getCategory(width);
+
+          return OrientationBuilder(
+            builder: (context, currentOrientation) {
+              if (width < 600) {
+                return _buildMobileLayout(
+                  currentOrientation,
+                );
+              } else if (width < 1024) {
+                return _buildTabletLayout(
+                  currentOrientation,
+                );
+              } else {
+                return _buildDesktopLayout();
+              }
+            },
+          );
+        },
+      ),
+      bottomNavigationBar: Container(
+        color: Colors.deepPurple,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Wrap(
+            alignment: WrapAlignment.spaceAround,
+            spacing: 10,
+            runSpacing: 6,
+            children: [
+              _footerText('Device: $category'),
+              _footerText(
+                'Width: ${screenWidth.toStringAsFixed(0)} px',
+              ),
+              _footerText(
+                'Orientation: ${orientation == Orientation.portrait ? 'Portrait' : 'Landscape'}',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _footerText(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  // MOBILE LAYOUT
+  Widget _buildMobileLayout(Orientation orientation) {
+    if (orientation == Orientation.portrait) {
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          return _buildCard(items[index]);
+        },
+      );
+    }
+
+    // Mobile landscape: horizontally scrolling cards.
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.all(12),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        return SizedBox(
+          width: 240,
+          child: _buildCard(items[index]),
+        );
+      },
+    );
+  }
+
+  // TABLET LAYOUT
+  Widget _buildTabletLayout(Orientation orientation) {
+    final padding =
+        orientation == Orientation.landscape ? 28.0 : 18.0;
+    final spacing =
+        orientation == Orientation.landscape ? 24.0 : 16.0;
+
+    return GridView.builder(
+      padding: EdgeInsets.all(padding),
+      itemCount: items.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: spacing,
+        mainAxisSpacing: spacing,
+        childAspectRatio:
+            orientation == Orientation.landscape ? 1.7 : 1.25,
+      ),
+      itemBuilder: (context, index) {
+        return _buildCard(items[index]);
+      },
+    );
+  }
+
+  // DESKTOP LAYOUT
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        NavigationRail(
+          backgroundColor: Colors.white,
+          selectedIndex: 0,
+          onDestinationSelected: (index) {},
+          labelType: NavigationRailLabelType.all,
+          destinations: const [
+            NavigationRailDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: Text('Home'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.photo_library_outlined),
+              selectedIcon: Icon(Icons.photo_library),
+              label: Text('Gallery'),
+            ),
+            NavigationRailDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: Text('Settings'),
+            ),
+          ],
+        ),
+        const VerticalDivider(width: 1),
+        Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.all(28),
+            itemCount: items.length,
+            gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 24,
+              mainAxisSpacing: 24,
+              childAspectRatio: 1.2,
+            ),
+            itemBuilder: (context, index) {
+              return _buildCard(items[index]);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  // REUSABLE CONTENT CARD
+  Widget _buildCard(GalleryItem item) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 3,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: item.color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                item.icon,
+                size: 34,
+                color: item.color,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              item.title,
+              style: const TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: Text(
+                item.description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                  height: 1.4,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 3,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
